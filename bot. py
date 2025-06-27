@@ -1,1 +1,981 @@
+import os
+import logging
+import json
+import random
+from datetime import datetime, timedelta
+from telegram import (
+    Update,
+    InlineKeyboardButton,
+    InlineKeyboardMarkup,
+    ReplyKeyboardMarkup,
+    ReplyKeyboardRemove
+)
+from telegram.ext import (
+    Updater,
+    CommandHandler,
+    MessageHandler,
+    Filters,
+    CallbackContext,
+    CallbackQueryHandler,
+    ConversationHandler,
+    PicklePersistence
+)
 
+# Настройка логирования
+logging.basicConfig(
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    level=logging.INFO
+)
+logger = logging.getLogger(__name__)
+
+# Константы состояний
+(
+    MAIN_MENU, CITY_SELECTION, VACANCY_SELECTION, 
+    QUESTIONNAIRE_AGE, QUESTIONNAIRE_CITY, QUESTIONNAIRE_VACANCY,
+    QUESTIONNAIRE_EXPERIENCE, QUESTIONNAIRE_QUESTIONS, QUESTIONNAIRE_CONTACTS,
+    TICKET_CREATION, TICKET_MESSAGE, PAYMENT_SELECTION,
+    REGISTER_USERNAME, REGISTER_PASSWORD, LOGIN_USERNAME, LOGIN_PASSWORD,
+    ADMIN_MAIN, ADMIN_USERS, ADMIN_USER_DETAIL, ADMIN_TICKETS, ADMIN_TICKET_DETAIL,
+    ADMIN_QUESTIONNAIRES, ADMIN_QUESTIONNAIRE_DETAIL, ADMIN_BLOCK_USER,
+    ADMIN_CHANGE_PASSWORD, ADMIN_STATS
+) = range(20)
+
+# Константы
+BOT_TOKEN = "8151092470:AAH1b61nRsGaD7g1AgJT9w2YhinHeE_E9wU"
+ADMIN_ID = 7130956293
+CITIES = ["Ступино", "Москва"]
+VACANCIES = {
+    "🎨 Граффитчик": {
+        "deposit": 0,
+        "password": "graf2025",
+        "description": (
+            "🤝 Условия: Без залога\n"
+            "⚙️ Оборудование: Маркер/Баллончик + трафарет\n"
+            "✅ Обязанности: Рисунок рекламы на стенах\n"
+            "✏️ Текст: RoyGen24_bot МЕФ ГАШ СОЛЬ МЁД ТОП\n"
+            "💰 Оплата: 75₽/рисунок, 150₽/граффити\n"
+            "😎 Перспективы: Курьер → Оператор → Куратор\n"
+            "🔑 Пароль будет выдан после регистрации"
+        )
+    },
+    "📦 Курьер": {
+        "deposit": 3000,
+        "password": "kura2025",
+        "description": (
+            "🤝 Условия: Залог 3 000₽/5 000₽/10 000₽\n"
+            "⚙️ Оборудование: Зип-пакеты, весы, изолента\n"
+            "✅ Обязанности: Забор/фасовка/раскладка кладов 2-3р/нед\n"
+            "💰 Оплата: От 750₽/клад + 15% бонус\n"
+            "🔑 Пароль будет выдан после оплаты"
+        )
+    },
+    "💻 Оператор": {
+        "deposit": 30000,
+        "password": "oper2025",
+        "description": (
+            "🤝 Условия: Залог 30 000₽\n"
+            "✅ Обязанности: Работа с клиентами\n"
+            "💰 Оплата: От 35 000₽/месяц\n"
+            "🔑 Пароль будет выдан после оплаты"
+        )
+    },
+    "👨‍💻 Куратор⭐️": {
+        "deposit": 50000,
+        "password": "kur2025",
+        "description": (
+            "🤝 Условия: Залог 50 000₽, опыт 6+ мес\n"
+            "⚙️ Оборудование: Админ-панель + ПК\n"
+            "✅ Обязанности: Управление курьерами и логистикой\n"
+            "💰 Оплата: От 60 000₽/месяц\n"
+            "🔑 Пароль будет выдан после оплаты"
+        )
+    }
+}
+EMOJI_CATEGORIES = {
+    "Фрукты": ["🍏", "🍎", "🍐", "🍊", "🍋", "🍌", "🍉", "🍇", "🍓", "🫐", "🍈", "🍒", "🍑", "🥭", "🍍", "🥝"],
+    "Овощи": ["🍅", "🥦", "🥬", "🥒", "🌶️", "🫑", "🌽", "🥕", "🧄", "🧅", "🍆", "🥑", "🫒"],
+    "Животные": ["🐶", "🐱", "🐭", "🐹", "🐰", "🦊", "🐻", "🐼", "🐨", "🐯", "🦁", "🐮", "🐷", "🐸", "🐵", "🦉", "🦄"],
+    "Спорт": ["⚽", "🏀", "🏈", "⚾", "🥎", "🎾", "🏐", "🏉", "🎱", "🪀", "🏓", "🏸", "🥍"]
+}
+
+# Инициализация хранилища данных
+def init_data():
+    return {
+        "users": {},
+        "tickets": {},
+        "notifications": {},
+        "activity": {},
+        "blocked": {},
+        "last_captcha": {}
+    }
+
+# Сохранение и загрузка данных
+def save_data(data, filename="bot_data.json"):
+    with open(filename, "w") as f:
+        json.dump(data, f)
+
+def load_data(filename="bot_data.json"):
+    try:
+        with open(filename, "r") as f:
+            return json.load(f)
+    except (FileNotFoundError, json.JSONDecodeError):
+        return init_data()
+
+# Генерация капчи
+def generate_captcha():
+    category = random.choice(list(EMOJI_CATEGORIES.keys()))
+    emojis = random.sample(EMOJI_CATEGORIES[category], 4)
+    correct_emoji = random.choice(emojis)
+    return emojis, correct_emoji, category
+
+# Проверка активности пользователя
+def check_activity(user_id, context):
+    data = context.bot_data
+    now = datetime.now()
+    
+    # Проверка блокировки
+    if str(user_id) in data["blocked"]:
+        block_time = datetime.fromisoformat(data["blocked"][str(user_id)])
+        if now < block_time:
+            return False
+        del data["blocked"][str(user_id)]
+    
+    # Проверка капчи
+    if str(user_id) in data["last_captcha"]:
+        last_captcha_time = datetime.fromisoformat(data["last_captcha"][str(user_id)])
+        if (now - last_captcha_time) > timedelta(minutes=30):
+            return False
+    
+    return True
+
+# Отправка капчи
+def send_captcha(update, context):
+    user_id = update.effective_user.id
+    emojis, correct_emoji, category = generate_captcha()
+    
+    keyboard = []
+    for i, emoji in enumerate(emojis):
+        keyboard.append([InlineKeyboardButton(emoji, callback_data=f"captcha_{i}")])
+    
+    context.bot_data["captcha"][str(user_id)] = {
+        "emojis": emojis,
+        "correct": correct_emoji,
+        "attempts": 0
+    }
+    
+    update.message.reply_text(
+        f"🔒 Пожалуйста, пройдите проверку безопасности\n"
+        f"Выберите: {correct_emoji}",
+        reply_markup=InlineKeyboardMarkup(keyboard)
+    )
+
+# Главное меню
+def main_menu(update, context):
+    user_id = update.effective_user.id
+    data = context.bot_data
+    
+    if not check_activity(user_id, context):
+        send_captcha(update, context)
+        return
+    
+    user = data["users"].get(str(user_id), {})
+    
+    buttons = [
+        ["🏙️ Город", "💼 Вакансии"],
+        ["📝 Анкета", "📩 Тикет"],
+        ["👤 Профиль"]
+    ]
+    
+    if user.get("balance", 0) > 0:
+        buttons[1].append("💰 Оплата")
+    
+    if user_id == ADMIN_ID:
+        buttons.append(["👑 Админ-панель"])
+    
+    if user.get("role") == "employee":
+        buttons = [
+            ["👤 Аккаунт", "📚 Мануалы"],
+            ["🎮 Симуляция", "🔔 Уведомления"]
+        ]
+    
+    reply_markup = ReplyKeyboardMarkup(buttons, resize_keyboard=True)
+    
+    if update.message:
+        update.message.reply_text("Главное меню:", reply_markup=reply_markup)
+    else:
+        update.callback_query.message.reply_text("Главное меню:", reply_markup=reply_markup)
+    
+    return MAIN_MENU
+
+# Обработка капчи
+def captcha_handler(update, context):
+    query = update.callback_query
+    user_id = query.from_user.id
+    data = context.bot_data
+    captcha_data = data["captcha"].get(str(user_id))
+    
+    if not captcha_data:
+        query.answer("Ошибка капчи. Попробуйте снова.")
+        return
+    
+    selected_index = int(query.data.split("_")[1])
+    selected_emoji = captcha_data["emojis"][selected_index]
+    correct_emoji = captcha_data["correct"]
+    captcha_data["attempts"] += 1
+    
+    if selected_emoji == correct_emoji:
+        # Капча пройдена
+        data["last_captcha"][str(user_id)] = datetime.now().isoformat()
+        del data["captcha"][str(user_id)]
+        query.edit_message_text("✅ Проверка пройдена успешно!")
+        main_menu(update, context)
+    else:
+        if captcha_data["attempts"] >= 3:
+            # Блокировка на 30 минут
+            block_time = datetime.now() + timedelta(minutes=30)
+            data["blocked"][str(user_id)] = block_time.isoformat()
+            del data["captcha"][str(user_id)]
+            query.edit_message_text("❌ Превышено количество попыток. Вы заблокированы на 30 минут.")
+        else:
+            # Повторная попытка
+            emojis, correct_emoji, category = generate_captcha()
+            captcha_data["emojis"] = emojis
+            captcha_data["correct"] = correct_emoji
+            
+            keyboard = []
+            for i, emoji in enumerate(emojis):
+                keyboard.append([InlineKeyboardButton(emoji, callback_data=f"captcha_{i}")])
+            
+            query.edit_message_text(
+                f"❌ Неверный выбор. Попытка {captcha_data['attempts']}/3\n"
+                f"Выберите: {correct_emoji}",
+                reply_markup=InlineKeyboardMarkup(keyboard)
+            )
+    
+    query.answer()
+
+# Профиль пользователя
+def profile(update, context):
+    user_id = update.effective_user.id
+    data = context.bot_data
+    user = data["users"].get(str(user_id), {})
+    
+    profile_text = (
+        f"👤 Профиль:\n"
+        f"├ Ник: @{update.effective_user.username}\n"
+        f"├ Баланс: {user.get('balance', 0)}₽\n"
+        f"├ Статус анкеты: {user.get('questionnaire_status', 'не заполнена')}\n"
+        f"└ Роль: {user.get('role', 'пользователь')}\n\n"
+        f"💳 История транзакций:\n"
+    )
+    
+    for transaction in user.get("transactions", [])[:5]:
+        profile_text += f"├ {transaction['type']} {transaction['amount']}₽ ({transaction['date']})\n"
+    
+    update.message.reply_text(profile_text)
+    return MAIN_MENU
+
+# Выбор города
+def select_city(update, context):
+    buttons = [[city] for city in CITIES]
+    buttons.append(["🔙 Назад"])
+    reply_markup = ReplyKeyboardMarkup(buttons, resize_keyboard=True)
+    update.message.reply_text("Выберите город:", reply_markup=reply_markup)
+    return CITY_SELECTION
+
+def city_selected(update, context):
+    city = update.message.text
+    if city not in CITIES:
+        update.message.reply_text("Пожалуйста, выберите город из списка.")
+        return CITY_SELECTION
+    
+    user_id = update.effective_user.id
+    context.user_data["city"] = city
+    
+    update.message.reply_text(f"Вы выбрали город: {city}")
+    return main_menu(update, context)
+
+# Выбор вакансии
+def select_vacancy(update, context):
+    buttons = [[vacancy] for vacancy in VACANCIES.keys()]
+    buttons.append(["🔙 Назад"])
+    reply_markup = ReplyKeyboardMarkup(buttons, resize_keyboard=True)
+    update.message.reply_text("Выберите вакансию:", reply_markup=reply_markup)
+    return VACANCY_SELECTION
+
+def vacancy_selected(update, context):
+    vacancy = update.message.text
+    if vacancy not in VACANCIES:
+        update.message.reply_text("Пожалуйста, выберите вакансию из списка.")
+        return VACANCY_SELECTION
+    
+    description = VACANCIES[vacancy]["description"]
+    update.message.reply_text(
+        f"🔍 Описание вакансии {vacancy}:\n\n{description}",
+        parse_mode="Markdown"
+    )
+    return main_menu(update, context)
+
+# Анкета
+def start_questionnaire(update, context):
+    update.message.reply_text(
+        "📝 Заполнение анкеты\n\n"
+        "1. Сколько вам полных лет?",
+        reply_markup=ReplyKeyboardRemove()
+    )
+    return QUESTIONNAIRE_AGE
+
+def questionnaire_age(update, context):
+    try:
+        age = int(update.message.text)
+        if age < 18:
+            update.message.reply_text("❌ Только для лиц старше 18 лет")
+            return main_menu(update, context)
+        
+        context.user_data["age"] = age
+        buttons = [[city] for city in CITIES]
+        reply_markup = ReplyKeyboardMarkup(buttons, resize_keyboard=True)
+        update.message.reply_text("2. Выберите город для работы:", reply_markup=reply_markup)
+        return QUESTIONNAIRE_CITY
+    except ValueError:
+        update.message.reply_text("❌ Пожалуйста, введите число")
+        return QUESTIONNAIRE_AGE
+
+def questionnaire_city(update, context):
+    city = update.message.text
+    if city not in CITIES:
+        update.message.reply_text("Пожалуйста, выберите город из списка.")
+        return QUESTIONNAIRE_CITY
+    
+    context.user_data["city"] = city
+    
+    buttons = [[vacancy] for vacancy in VACANCIES.keys()]
+    reply_markup = ReplyKeyboardMarkup(buttons, resize_keyboard=True)
+    update.message.reply_text("3. Выберите вакансию:", reply_markup=reply_markup)
+    return QUESTIONNAIRE_VACANCY
+
+def questionnaire_vacancy(update, context):
+    vacancy = update.message.text
+    if vacancy not in VACANCIES:
+        update.message.reply_text("Пожалуйста, выберите вакансию из списка.")
+        return QUESTIONNAIRE_VACANCY
+    
+    context.user_data["vacancy"] = vacancy
+    update.message.reply_text(
+        "4. Имеется ли у вас опыт работы? Если да, то кем и сколько?\n"
+        "(Опишите подробно)",
+        reply_markup=ReplyKeyboardRemove()
+    )
+    return QUESTIONNAIRE_EXPERIENCE
+
+def questionnaire_experience(update, context):
+    context.user_data["experience"] = update.message.text
+    update.message.reply_text("5. Есть ли у вас вопросы к администрации?")
+    return QUESTIONNAIRE_QUESTIONS
+
+def questionnaire_questions(update, context):
+    context.user_data["questions"] = update.message.text
+    update.message.reply_text(
+        "6. Укажите резервные контакты на случай проблем со связью в Telegram:\n"
+        "(Telegram, Element, Xabber и т.д.)"
+    )
+    return QUESTIONNAIRE_CONTACTS
+
+def questionnaire_contacts(update, context):
+    context.user_data["contacts"] = update.message.text
+    
+    # Формирование сводки
+    summary = (
+        "📝 Сводка анкеты:\n"
+        f"├ Возраст: {context.user_data['age']}\n"
+        f"├ Город: {context.user_data['city']}\n"
+        f"├ Вакансия: {context.user_data['vacancy']}\n"
+        f"├ Опыт: {context.user_data['experience']}\n"
+        f"├ Вопросы: {context.user_data['questions']}\n"
+        f"└ Контакты: {context.user_data['contacts']}\n\n"
+        "Подтверждаете отправку?"
+    )
+    
+    keyboard = [
+        [InlineKeyboardButton("✅ Подтвердить", callback_data="confirm_yes")],
+        [InlineKeyboardButton("❌ Отменить", callback_data="confirm_no")]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    
+    update.message.reply_text(summary, reply_markup=reply_markup)
+    return ConversationHandler.END
+
+def questionnaire_confirmation(update, context):
+    query = update.callback_query
+    user_id = update.effective_user.id
+    data = context.bot_data
+    
+    if query.data == "confirm_yes":
+        # Сохранение анкеты
+        user = data["users"].setdefault(str(user_id), {
+            "username": update.effective_user.username,
+            "balance": 0,
+            "transactions": [],
+            "questionnaire_status": "на рассмотрении",
+            "role": "user",
+            "tickets": []
+        })
+        
+        user["questionnaire"] = context.user_data.copy()
+        user["questionnaire_status"] = "на рассмотрении"
+        
+        # Уведомление администратора
+        send_admin_notification(
+            context, 
+            f"📬 Новая анкета!\nПользователь: @{update.effective_user.username}",
+            "admin_questionnaires"
+        )
+        
+        query.edit_message_text("✅ Анкета отправлена на рассмотрение!")
+    else:
+        query.edit_message_text("❌ Заполнение анкеты отменено")
+    
+    return main_menu(update, context)
+
+# Система тикетов
+def create_ticket(update, context):
+    update.message.reply_text(
+        "📩 Создание тикета\n\n"
+        "Опишите ваш вопрос или проблему:",
+        reply_markup=ReplyKeyboardRemove()
+    )
+    return TICKET_MESSAGE
+
+def ticket_message(update, context):
+    user_id = update.effective_user.id
+    data = context.bot_data
+    user = data["users"].setdefault(str(user_id), {
+        "username": update.effective_user.username,
+        "balance": 0,
+        "transactions": [],
+        "questionnaire_status": "не заполнена",
+        "role": "user",
+        "tickets": []
+    })
+    
+    # Создание тикета
+    ticket_id = f"T{datetime.now().strftime('%Y%m%d%H%M%S')}"
+    ticket = {
+        "id": ticket_id,
+        "user_id": user_id,
+        "username": update.effective_user.username,
+        "message": update.message.text,
+        "status": "открыт",
+        "created_at": datetime.now().isoformat(),
+        "messages": [{
+            "from": "user",
+            "text": update.message.text,
+            "time": datetime.now().isoformat()
+        }]
+    }
+    
+    data["tickets"][ticket_id] = ticket
+    user["tickets"].append(ticket_id)
+    
+    # Уведомление администратора
+    send_admin_notification(
+        context, 
+        f"📩 Новый тикет #{ticket_id}\nПользователь: @{update.effective_user.username}",
+        "admin_tickets"
+    )
+    
+    update.message.reply_text(
+        f"✅ Тикет #{ticket_id} создан!\n"
+        "Ожидайте ответа администрации."
+    )
+    return main_menu(update, context)
+
+# Оплата залога
+def payment_selection(update, context):
+    user_id = update.effective_user.id
+    data = context.bot_data
+    user = data["users"].get(str(user_id), {})
+    
+    if user.get("balance", 0) <= 0:
+        update.message.reply_text("❌ На вашем балансе недостаточно средств")
+        return main_menu(update, context)
+    
+    buttons = []
+    for vacancy, info in VACANCIES.items():
+        if info["deposit"] > 0 and user["balance"] >= info["deposit"]:
+            buttons.append([f"{vacancy} - {info['deposit']}₽"])
+    
+    if not buttons:
+        update.message.reply_text("❌ У вас недостаточно средств для оплаты любой вакансии")
+        return main_menu(update, context)
+    
+    buttons.append(["🔙 Назад"])
+    reply_markup = ReplyKeyboardMarkup(buttons, resize_keyboard=True)
+    update.message.reply_text("Выберите вакансию для оплаты:", reply_markup=reply_markup)
+    return PAYMENT_SELECTION
+
+def process_payment(update, context):
+    user_id = update.effective_user.id
+    data = context.bot_data
+    user = data["users"].get(str(user_id), {})
+    
+    selection = update.message.text.split(" - ")[0]
+    if selection not in VACANCIES:
+        update.message.reply_text("Пожалуйста, выберите вакансию из списка.")
+        return PAYMENT_SELECTION
+    
+    vacancy_info = VACANCIES[selection]
+    deposit = vacancy_info["deposit"]
+    
+    if user.get("balance", 0) < deposit:
+        update.message.reply_text("❌ Недостаточно средств на балансе")
+        return main_menu(update, context)
+    
+    # Обновление баланса
+    user["balance"] -= deposit
+    user["transactions"].append({
+        "type": "Оплата залога",
+        "amount": -deposit,
+        "date": datetime.now().isoformat(),
+        "vacancy": selection
+    })
+    
+    # Сохранение информации о вакансии
+    user["selected_vacancy"] = selection
+    user["vacancy_password"] = vacancy_info["password"]
+    
+    update.message.reply_text(
+        f"✅ Оплата залога для вакансии {selection} прошла успешно!\n"
+        f"С вашего баланса списано: {deposit}₽\n\n"
+        "Теперь вы можете зарегистрироваться как сотрудник."
+    )
+    
+    # Переход к регистрации
+    update.message.reply_text("Придумайте логин для системы:")
+    return REGISTER_USERNAME
+
+# Регистрация сотрудника
+def register_username(update, context):
+    username = update.message.text.strip()
+    user_id = update.effective_user.id
+    data = context.bot_data
+    
+    # Проверка уникальности логина
+    for user in data["users"].values():
+        if user.get("employee_username") == username:
+            update.message.reply_text("❌ Этот логин уже занят. Придумайте другой:")
+            return REGISTER_USERNAME
+    
+    context.user_data["employee_username"] = username
+    update.message.reply_text(
+        f"Логин: {username}\n"
+        f"Теперь введите пароль для вашей вакансии:"
+    )
+    return REGISTER_PASSWORD
+
+def register_password(update, context):
+    password = update.message.text.strip()
+    user_id = update.effective_user.id
+    data = context.bot_data
+    user = data["users"].get(str(user_id), {})
+    
+    if password != user.get("vacancy_password"):
+        update.message.reply_text("❌ Неверный пароль. Попробуйте еще раз:")
+        return REGISTER_PASSWORD
+    
+    # Завершение регистрации
+    user["role"] = "employee"
+    user["employee_username"] = context.user_data["employee_username"]
+    user["login_time"] = datetime.now().isoformat()
+    
+    # Отправка пароля в личные сообщения
+    try:
+        context.bot.send_message(
+            user_id,
+            f"🔑 Ваши данные для входа:\n"
+            f"├ Логин: {user['employee_username']}\n"
+            f"└ Пароль: {password}\n\n"
+            f"Сохраните их в надежном месте!"
+        )
+    except Exception as e:
+        logger.error(f"Ошибка отправки сообщения: {e}")
+    
+    update.message.reply_text(
+        "✅ Регистрация завершена успешно!\n"
+        "Данные для входа отправлены вам в личные сообщения."
+    )
+    return main_menu(update, context)
+
+# Вход в систему сотрудника
+def login_username(update, context):
+    update.message.reply_text("Введите ваш логин:", reply_markup=ReplyKeyboardRemove())
+    return LOGIN_USERNAME
+
+def login_password(update, context):
+    username = update.message.text.strip()
+    context.user_data["login_username"] = username
+    update.message.reply_text("Введите пароль:")
+    return LOGIN_PASSWORD
+
+def authenticate(update, context):
+    password = update.message.text.strip()
+    user_id = update.effective_user.id
+    data = context.bot_data
+    user = data["users"].get(str(user_id), {})
+    
+    username = context.user_data["login_username"]
+    
+    if (user.get("employee_username") == username and 
+        user.get("vacancy_password") == password):
+        # Успешная аутентификация
+        user["role"] = "employee"
+        user["login_time"] = datetime.now().isoformat()
+        
+        update.message.reply_text("✅ Вход выполнен успешно!")
+        return main_menu(update, context)
+    else:
+        update.message.reply_text("❌ Неверный логин или пароль. Попробуйте снова:")
+        return LOGIN_USERNAME
+
+# Админ-панель
+def admin_panel(update, context):
+    if update.effective_user.id != ADMIN_ID:
+        update.message.reply_text("❌ Доступ запрещен")
+        return main_menu(update, context)
+    
+    buttons = [
+        ["👥 Пользователи", "📩 Тикеты"],
+        ["📝 Анкеты", "📊 Статистика"],
+        ["🔑 Пароли вакансий", "🔔 Уведомления"],
+        ["🔙 Назад"]
+    ]
+    reply_markup = ReplyKeyboardMarkup(buttons, resize_keyboard=True)
+    update.message.reply_text("👑 Админ-панель:", reply_markup=reply_markup)
+    return ADMIN_MAIN
+
+# Управление пользователями
+def admin_users(update, context):
+    data = context.bot_data
+    buttons = []
+    
+    for user_id, user in data["users"].items():
+        try:
+            username = f"@{user['username']}" if "username" in user else f"ID: {user_id}"
+            status = "🚫" if user.get("blocked") else "✅"
+            buttons.append([f"{status} {username}"])
+        except KeyError:
+            continue
+    
+    buttons.append(["🔙 Назад"])
+    reply_markup = ReplyKeyboardMarkup(buttons, resize_keyboard=True)
+    update.message.reply_text("👥 Список пользователей:", reply_markup=reply_markup)
+    return ADMIN_USERS
+
+def admin_user_detail(update, context):
+    username = update.message.text[2:].strip()  # Убираем emoji статуса
+    data = context.bot_data
+    
+    # Поиск пользователя
+    for user_id, user in data["users"].items():
+        if f"@{user['username']}" == username or f"ID: {user_id}" == username:
+            context.user_data["admin_selected_user"] = user_id
+            
+            status = "заблокирован" if user.get("blocked") else "активен"
+            text = (
+                f"👤 Пользователь: @{user['username']}\n"
+                f"├ ID: {user_id}\n"
+                f"├ Статус: {status}\n"
+                f"├ Баланс: {user.get('balance', 0)}₽\n"
+                f"├ Роль: {user.get('role', 'пользователь')}\n"
+                f"└ Анкета: {user.get('questionnaire_status', 'не заполнена')}\n\n"
+            )
+            
+            if "questionnaire" in user:
+                q = user["questionnaire"]
+                text += (
+                    f"📝 Анкета:\n"
+                    f"├ Возраст: {q.get('age', '')}\n"
+                    f"├ Город: {q.get('city', '')}\n"
+                    f"├ Вакансия: {q.get('vacancy', '')}\n"
+                    f"├ Опыт: {q.get('experience', '')[:30]}...\n"
+                    f"└ Контакты: {q.get('contacts', '')}\n\n"
+                )
+            
+            buttons = [["✉️ Написать", "💸 Пополнить баланс"]]
+            if user.get("blocked"):
+                buttons.append(["✅ Разблокировать"])
+            else:
+                buttons.append(["🚫 Заблокировать"])
+            
+            buttons.append(["🔙 Назад"])
+            reply_markup = ReplyKeyboardMarkup(buttons, resize_keyboard=True)
+            
+            update.message.reply_text(text, reply_markup=reply_markup)
+            return ADMIN_USER_DETAIL
+    
+    update.message.reply_text("❌ Пользователь не найден")
+    return admin_users(update, context)
+
+# Управление тикетами
+def admin_tickets(update, context):
+    data = context.bot_data
+    buttons = []
+    
+    for ticket_id, ticket in data["tickets"].items():
+        status = "🟢" if ticket["status"] == "открыт" else "🔴"
+        buttons.append([f"{status} #{ticket_id} @{ticket['username']}"])
+    
+    buttons.append(["🔙 Назад"])
+    reply_markup = ReplyKeyboardMarkup(buttons, resize_keyboard=True)
+    update.message.reply_text("📩 Список тикетов:", reply_markup=reply_markup)
+    return ADMIN_TICKETS
+
+def admin_ticket_detail(update, context):
+    ticket_ref = update.message.text
+    ticket_id = ticket_ref.split("#")[1].split(" ")[0]
+    data = context.bot_data
+    
+    if ticket_id not in data["tickets"]:
+        update.message.reply_text("❌ Тикет не найден")
+        return admin_tickets(update, context)
+    
+    ticket = data["tickets"][ticket_id]
+    context.user_data["admin_selected_ticket"] = ticket_id
+    
+    text = (
+        f"📩 Тикет #{ticket_id}\n"
+        f"├ Пользователь: @{ticket['username']}\n"
+        f"├ Статус: {ticket['status']}\n"
+        f"└ Создан: {datetime.fromisoformat(ticket['created_at']).strftime('%d.%m.%Y %H:%M')}\n\n"
+        f"💬 История сообщений:\n"
+    )
+    
+    for msg in ticket["messages"]:
+        sender = "👤 Пользователь" if msg["from"] == "user" else "👑 Админ"
+        time = datetime.fromisoformat(msg["time"]).strftime('%H:%M')
+        text += f"{sender} ({time}):\n{msg['text']}\n\n"
+    
+    buttons = [["💬 Ответить"], ["✅ Закрыть", "❌ Удалить"]]
+    buttons.append(["🔙 Назад"])
+    reply_markup = ReplyKeyboardMarkup(buttons, resize_keyboard=True)
+    
+    update.message.reply_text(text, reply_markup=reply_markup)
+    return ADMIN_TICKET_DETAIL
+
+def admin_ticket_reply(update, context):
+    ticket_id = context.user_data.get("admin_selected_ticket")
+    if not ticket_id:
+        return admin_tickets(update, context)
+    
+    context.user_data["ticket_reply_mode"] = True
+    update.message.reply_text("Введите ваш ответ:", reply_markup=ReplyKeyboardRemove())
+    return TICKET_MESSAGE
+
+def process_admin_reply(update, context):
+    ticket_id = context.user_data.get("admin_selected_ticket")
+    if not ticket_id:
+        return admin_tickets(update, context)
+    
+    data = context.bot_data
+    ticket = data["tickets"][ticket_id]
+    
+    # Добавление сообщения в историю
+    ticket["messages"].append({
+        "from": "admin",
+        "text": update.message.text,
+        "time": datetime.now().isoformat()
+    })
+    
+    # Отправка уведомления пользователю
+    user_id = ticket["user_id"]
+    try:
+        context.bot.send_message(
+            user_id,
+            f"📩 Новый ответ по тикету #{ticket_id}:\n\n"
+            f"{update.message.text}"
+        )
+        # Добавление уведомления
+        notifications = data["notifications"].setdefault(str(user_id), [])
+        notifications.append({
+            "type": "ticket_reply",
+            "text": f"Новый ответ по тикету #{ticket_id}",
+            "time": datetime.now().isoformat(),
+            "read": False
+        })
+    except Exception as e:
+        logger.error(f"Ошибка отправки уведомления: {e}")
+    
+    update.message.reply_text("✅ Ответ отправлен!")
+    return admin_ticket_detail(update, context)
+
+# Уведомления
+def notifications(update, context):
+    user_id = update.effective_user.id
+    data = context.bot_data
+    notifications = data["notifications"].get(str(user_id), [])
+    
+    if not notifications:
+        update.message.reply_text("🔔 У вас нет новых уведомлений")
+        return main_menu(update, context)
+    
+    unread = [n for n in notifications if not n["read"]]
+    if not unread:
+        update.message.reply_text("🔔 У вас нет новых уведомлений")
+        return main_menu(update, context)
+    
+    text = "🔔 Новые уведомления:\n\n"
+    for i, note in enumerate(unread[:10], 1):
+        time = datetime.fromisoformat(note["time"]).strftime('%d.%m.%Y %H:%M')
+        text += f"{i}. {note['text']} ({time})\n"
+        note["read"] = True
+    
+    update.message.reply_text(text)
+    return main_menu(update, context)
+
+# Отправка уведомлений администратору
+def send_admin_notification(context, message, action=None):
+    data = context.bot_data
+    notifications = data["notifications"].setdefault(str(ADMIN_ID), [])
+    
+    notification = {
+        "text": message,
+        "time": datetime.now().isoformat(),
+        "read": False
+    }
+    
+    if action:
+        notification["action"] = action
+    
+    notifications.append(notification)
+    
+    try:
+        context.bot.send_message(
+            ADMIN_ID,
+            f"🔔 {message}\n"
+            f"Используйте /admin для просмотра"
+        )
+    except Exception as e:
+        logger.error(f"Ошибка отправки уведомления админу: {e}")
+
+# Главная функция
+def main():
+    # Инициализация хранилища данных
+    persistence = PicklePersistence(filename='bot_data.pickle')
+    
+    updater = Updater(BOT_TOKEN, persistence=persistence, use_context=True)
+    dp = updater.dispatcher
+    
+    # Инициализация данных
+    if not dp.bot_data:
+        dp.bot_data = {
+            "users": {},
+            "tickets": {},
+            "notifications": {},
+            "activity": {},
+            "blocked": {},
+            "last_captcha": {},
+            "captcha": {}
+        }
+    
+    # Обработчики команд
+    conv_handler = ConversationHandler(
+        entry_points=[CommandHandler('start', main_menu)],
+        states={
+            MAIN_MENU: [
+                MessageHandler(Filters.regex('^🏙️ Город$'), select_city),
+                MessageHandler(Filters.regex('^💼 Вакансии$'), select_vacancy),
+                MessageHandler(Filters.regex('^📝 Анкета$'), start_questionnaire),
+                MessageHandler(Filters.regex('^📩 Тикет$'), create_ticket),
+                MessageHandler(Filters.regex('^👤 Профиль$'), profile),
+                MessageHandler(Filters.regex('^💰 Оплата$'), payment_selection),
+                MessageHandler(Filters.regex('^👑 Админ-панель$'), admin_panel),
+                MessageHandler(Filters.regex('^🔔 Уведомления$'), notifications),
+                MessageHandler(Filters.regex('^📚 Мануалы$'), lambda u,c: u.message.reply_text("Раздел в разработке")),
+                MessageHandler(Filters.regex('^🎮 Симуляция$'), lambda u,c: u.message.reply_text("Раздел в разработке")),
+                MessageHandler(Filters.regex('^👤 Аккаунт$'), profile),
+            ],
+            CITY_SELECTION: [
+                MessageHandler(Filters.text & ~Filters.command, city_selected)
+            ],
+            VACANCY_SELECTION: [
+                MessageHandler(Filters.text & ~Filters.command, vacancy_selected)
+            ],
+            QUESTIONNAIRE_AGE: [
+                MessageHandler(Filters.text & ~Filters.command, questionnaire_age)
+            ],
+            QUESTIONNAIRE_CITY: [
+                MessageHandler(Filters.text & ~Filters.command, questionnaire_city)
+            ],
+            QUESTIONNAIRE_VACANCY: [
+                MessageHandler(Filters.text & ~Filters.command, questionnaire_vacancy)
+            ],
+            QUESTIONNAIRE_EXPERIENCE: [
+                MessageHandler(Filters.text & ~Filters.command, questionnaire_experience)
+            ],
+            QUESTIONNAIRE_QUESTIONS: [
+                MessageHandler(Filters.text & ~Filters.command, questionnaire_questions)
+            ],
+            QUESTIONNAIRE_CONTACTS: [
+                MessageHandler(Filters.text & ~Filters.command, questionnaire_contacts),
+                CallbackQueryHandler(questionnaire_confirmation, pattern='^confirm_')
+            ],
+            TICKET_MESSAGE: [
+                MessageHandler(Filters.text & ~Filters.command, ticket_message)
+            ],
+            PAYMENT_SELECTION: [
+                MessageHandler(Filters.text & ~Filters.command, process_payment)
+            ],
+            REGISTER_USERNAME: [
+                MessageHandler(Filters.text & ~Filters.command, register_username)
+            ],
+            REGISTER_PASSWORD: [
+                MessageHandler(Filters.text & ~Filters.command, register_password)
+            ],
+            ADMIN_MAIN: [
+                MessageHandler(Filters.regex('^👥 Пользователи$'), admin_users),
+                MessageHandler(Filters.regex('^📩 Тикеты$'), admin_tickets),
+                MessageHandler(Filters.regex('^📝 Анкеты$'), lambda u,c: u.message.reply_text("Раздел в разработке")),
+                MessageHandler(Filters.regex('^📊 Статистика$'), lambda u,c: u.message.reply_text("Раздел в разработке")),
+                MessageHandler(Filters.regex('^🔑 Пароли вакансий$'), lambda u,c: u.message.reply_text("Раздел в разработке")),
+                MessageHandler(Filters.regex('^🔔 Уведомления$'), notifications),
+                MessageHandler(Filters.regex('^🔙 Назад$'), main_menu),
+            ],
+            ADMIN_USERS: [
+                MessageHandler(Filters.text & ~Filters.command, admin_user_detail),
+                MessageHandler(Filters.regex('^🔙 Назад$'), admin_panel)
+            ],
+            ADMIN_USER_DETAIL: [
+                MessageHandler(Filters.regex('^✉️ Написать$'), lambda u,c: u.message.reply_text("Функция в разработке")),
+                MessageHandler(Filters.regex('^💸 Пополнить баланс$'), lambda u,c: u.message.reply_text("Функция в разработке")),
+                MessageHandler(Filters.regex('^🚫 Заблокировать$'), lambda u,c: u.message.reply_text("Функция в разработке")),
+                MessageHandler(Filters.regex('^✅ Разблокировать$'), lambda u,c: u.message.reply_text("Функция в разработке")),
+                MessageHandler(Filters.regex('^🔙 Назад$'), admin_users)
+            ],
+            ADMIN_TICKETS: [
+                MessageHandler(Filters.text & ~Filters.command, admin_ticket_detail),
+                MessageHandler(Filters.regex('^🔙 Назад$'), admin_panel)
+            ],
+            ADMIN_TICKET_DETAIL: [
+                MessageHandler(Filters.regex('^💬 Ответить$'), admin_ticket_reply),
+                MessageHandler(Filters.regex('^✅ Закрыть$'), lambda u,c: u.message.reply_text("Функция в разработке")),
+                MessageHandler(Filters.regex('^❌ Удалить$'), lambda u,c: u.message.reply_text("Функция в разработке")),
+                MessageHandler(Filters.regex('^🔙 Назад$'), admin_tickets)
+            ],
+            TICKET_MESSAGE: [
+                MessageHandler(Filters.text & ~Filters.command, process_admin_reply)
+            ]
+        },
+        fallbacks=[CommandHandler('cancel', main_menu)],
+        persistent=True,
+        name="main_conversation"
+    )
+    
+    dp.add_handler(conv_handler)
+    dp.add_handler(CallbackQueryHandler(captcha_handler, pattern='^captcha_'))
+    
+    # Запуск бота
+    updater.start_polling()
+    updater.idle()
+
+if __name__ == '__main__':
+    main()
