@@ -44,6 +44,146 @@ logger = logging.getLogger(__name__)
 BOT_TOKEN = "8151092470:AAH1b61nRsGaD7g1AgJT9w2YhinHeE_E9wU"
 ADMIN_ID = 7130956293
 CITIES = ["Ступино", "Москва"]
+
+# Локализация интерфейса
+TEXTS = {
+    # Кнопки главного меню
+    "main_menu": "Главное меню:",
+    "city": "🏙️ Город",
+    "vacancies": "💼 Вакансии", 
+    "questionnaire": "📝 Анкета",
+    "ticket": "📩 Тикет",
+    "profile": "👤 Профиль",
+    "payment": "💰 Оплата",
+    "admin_panel": "👑 Админ-панель",
+    "notifications": "🔔 Уведомления",
+    "manuals": "📚 Мануалы",
+    "simulation": "🎮 Симуляция",
+    "account": "👤 Аккаунт",
+    "back": "🔙 Назад",
+    
+    # Админ панель
+    "users": "👥 Пользователи",
+    "tickets": "📩 Тикеты",
+    "questionnaires": "📝 Анкеты",
+    "statistics": "📊 Статистика",
+    "passwords": "🔑 Пароли вакансий",
+    
+    # Статусы и сообщения
+    "success": "✅ Успешно!",
+    "error": "❌ Ошибка",
+    "access_denied": "❌ Доступ запрещен",
+    "in_development": "Раздел в разработке",
+    "insufficient_funds": "❌ На вашем балансе недостаточно средств",
+    
+    # Тикеты
+    "write": "✉️ Написать",
+    "add_balance": "💸 Пополнить баланс",
+    "block": "🚫 Заблокировать", 
+    "unblock": "✅ Разблокировать",
+    "reply": "💬 Ответить",
+    "close": "✅ Закрыть",
+    "delete": "❌ Удалить",
+    
+    # Капча и безопасность
+    "captcha_header": "🔒 Пожалуйста, пройдите проверку безопасности",
+    "captcha_select": "Выберите:",
+    "captcha_success": "✅ Проверка пройдена успешно!",
+    "captcha_error": "Ошибка капчи. Попробуйте снова.",
+    "captcha_blocked": "❌ Превышено количество попыток. Вы заблокированы на 30 минут.",
+    "captcha_wrong": "❌ Неверный выбор. Попытка",
+    
+    # Команды выбора
+    "select_city": "Выберите город:",
+    "select_vacancy": "Выберите вакансию:",
+    "select_payment_vacancy": "Выберите вакансию для оплаты:",
+    
+    # Подтверждения
+    "confirm": "✅ Подтвердить",
+    "cancel": "❌ Отменить",
+    "confirmation_question": "Подтверждаете отправку?",
+    
+    # Профиль
+    "profile_header": "👤 Профиль:",
+    "nickname": "├ Ник:",
+    "balance": "├ Баланс:",
+    "questionnaire_status": "├ Статус анкеты:",
+    "role": "└ Роль:",
+    "transaction_history": "💳 История транзакций:",
+    
+    # Роли и статусы
+    "user": "пользователь",
+    "employee": "сотрудник",  
+    "not_filled": "не заполнена",
+    "under_review": "на рассмотрении",
+    "approved": "одобрена",
+    "rejected": "отклонена",
+    "active": "активен",
+    "blocked": "заблокирован",
+    
+    # Детали пользователя и админки
+    "user_detail_id": "├ ID:",
+    "user_detail_status": "├ Статус:",
+    "user_detail_balance": "├ Баланс:",
+    "user_detail_role": "├ Роль:",
+    "user_detail_questionnaire": "└ Анкета:",
+    "questionnaire_detail": "📝 Анкета:",
+    "age": "├ Возраст:",
+    "city_work": "├ Город:",
+    "experience": "├ Опыт:",
+    "contacts": "└ Контакты:",
+    
+    # Тикеты админ
+    "ticket_list": "📩 Список тикетов:",
+    "ticket_detail_user": "├ Пользователь:",
+    "ticket_detail_status": "├ Статус:",
+    "ticket_detail_created": "└ Создан:",
+    "message_history": "💬 История сообщений:",
+    "admin_sender": "👑 Админ",
+    "user_sender": "👤 Пользователь",
+    "ticket_opened": "открыт",
+    "ticket_closed": "закрыт",
+    
+    # Статусные сообщения
+    "user_not_found": "❌ Пользователь не найден",
+    "ticket_not_found": "❌ Тикет не найден",
+    "reply_sent": "✅ Ответ отправлен!",
+    "enter_reply": "Введите ваш ответ:",
+    "function_in_development": "Функция в разработке",
+    
+    # Уведомления
+    "no_notifications": "🔔 У вас нет новых уведомлений",
+    "new_notifications": "🔔 Новые уведомления:",
+    "new_ticket_reply": "📩 Новый ответ по тикету",
+    "questionnaire_sent": "✅ Анкета отправлена на рассмотрение!",
+    "questionnaire_cancelled": "❌ Заполнение анкеты отменено",
+    "ticket_created": "✅ Тикет создан!",
+    "waiting_admin_response": "Ожидайте ответа администрации.",
+    
+    # Возрастные ограничения и ошибки
+    "age_restriction": "❌ Только для лиц старше 18 лет",
+    "enter_number": "❌ Пожалуйста, введите число",
+    "select_from_list": "Пожалуйста, выберите из списка.",
+    "selected_city": "Вы выбрали город:",
+    "selected_vacancy": "🔍 Описание вакансии",
+    
+    # Регистрация и аутентификация
+    "create_login": "Придумайте логин для системы:",
+    "login_taken": "❌ Этот логин уже занят. Придумайте другой:",
+    "enter_password": "Теперь введите пароль для вашей вакансии:",
+    "wrong_password": "❌ Неверный пароль. Попробуйте еще раз:",
+    "registration_complete": "✅ Регистрация завершена успешно!",
+    "credentials_sent": "Данные для входа отправлены вам в личные сообщения.",
+    "login_successful": "✅ Вход выполнен успешно!",
+    "wrong_credentials": "❌ Неверный логин или пароль. Попробуйте снова:",
+    "enter_login": "Введите ваш логин:",
+    "enter_password_login": "Введите пароль:",
+    
+    # Платежи
+    "payment_successful": "✅ Оплата залога прошла успешно!",
+    "amount_debited": "С вашего баланса списано:",
+    "can_register_employee": "Теперь вы можете зарегистрироваться как сотрудник.",
+}
 VACANCIES = {
     "🎨 Граффитчик": {
         "deposit": 0,
@@ -164,8 +304,8 @@ def send_captcha(update, context):
     }
     
     update.message.reply_text(
-        f"🔒 Пожалуйста, пройдите проверку безопасности\n"
-        f"Выберите: {correct_emoji}",
+        f"{TEXTS['captcha_header']}\n"
+        f"{TEXTS['captcha_select']} {correct_emoji}",
         reply_markup=InlineKeyboardMarkup(keyboard)
     )
 
@@ -181,29 +321,29 @@ def main_menu(update, context):
     user = data["users"].get(str(user_id), {})
     
     buttons = [
-        ["🏙️ Город", "💼 Вакансии"],
-        ["📝 Анкета", "📩 Тикет"],
-        ["👤 Профиль"]
+        [TEXTS["city"], TEXTS["vacancies"]],
+        [TEXTS["questionnaire"], TEXTS["ticket"]],
+        [TEXTS["profile"]]
     ]
     
     if user.get("balance", 0) > 0:
-        buttons[1].append("💰 Оплата")
+        buttons[1].append(TEXTS["payment"])
     
     if user_id == ADMIN_ID:
-        buttons.append(["👑 Админ-панель"])
+        buttons.append([TEXTS["admin_panel"]])
     
-    if user.get("role") == "employee":
+    if user.get("role") == TEXTS["employee"]:
         buttons = [
-            ["👤 Аккаунт", "📚 Мануалы"],
-            ["🎮 Симуляция", "🔔 Уведомления"]
+            [TEXTS["account"], TEXTS["manuals"]],
+            [TEXTS["simulation"], TEXTS["notifications"]]
         ]
     
     reply_markup = ReplyKeyboardMarkup(buttons, resize_keyboard=True)
     
     if update.message:
-        update.message.reply_text("Главное меню:", reply_markup=reply_markup)
+        update.message.reply_text(TEXTS["main_menu"], reply_markup=reply_markup)
     else:
-        update.callback_query.message.reply_text("Главное меню:", reply_markup=reply_markup)
+        update.callback_query.message.reply_text(TEXTS["main_menu"], reply_markup=reply_markup)
     
     return MAIN_MENU
 
@@ -215,7 +355,7 @@ def captcha_handler(update, context):
     captcha_data = data["captcha"].get(str(user_id))
     
     if not captcha_data:
-        query.answer("Ошибка капчи. Попробуйте снова.")
+        query.answer(TEXTS["captcha_error"])
         return
     
     selected_index = int(query.data.split("_")[1])
@@ -227,7 +367,7 @@ def captcha_handler(update, context):
         # Капча пройдена
         data["last_captcha"][str(user_id)] = datetime.now().isoformat()
         del data["captcha"][str(user_id)]
-        query.edit_message_text("✅ Проверка пройдена успешно!")
+        query.edit_message_text(TEXTS["captcha_success"])
         main_menu(update, context)
     else:
         if captcha_data["attempts"] >= 3:
@@ -235,7 +375,7 @@ def captcha_handler(update, context):
             block_time = datetime.now() + timedelta(minutes=30)
             data["blocked"][str(user_id)] = block_time.isoformat()
             del data["captcha"][str(user_id)]
-            query.edit_message_text("❌ Превышено количество попыток. Вы заблокированы на 30 минут.")
+            query.edit_message_text(TEXTS["captcha_blocked"])
         else:
             # Повторная попытка
             emojis, correct_emoji, category = generate_captcha()
@@ -247,8 +387,8 @@ def captcha_handler(update, context):
                 keyboard.append([InlineKeyboardButton(emoji, callback_data=f"captcha_{i}")])
             
             query.edit_message_text(
-                f"❌ Неверный выбор. Попытка {captcha_data['attempts']}/3\n"
-                f"Выберите: {correct_emoji}",
+                f"{TEXTS['captcha_wrong']} {captcha_data['attempts']}/3\n"
+                f"{TEXTS['captcha_select']} {correct_emoji}",
                 reply_markup=InlineKeyboardMarkup(keyboard)
             )
     
@@ -261,12 +401,12 @@ def profile(update, context):
     user = data["users"].get(str(user_id), {})
     
     profile_text = (
-        f"👤 Профиль:\n"
-        f"├ Ник: @{update.effective_user.username}\n"
-        f"├ Баланс: {user.get('balance', 0)}₽\n"
-        f"├ Статус анкеты: {user.get('questionnaire_status', 'не заполнена')}\n"
-        f"└ Роль: {user.get('role', 'пользователь')}\n\n"
-        f"💳 История транзакций:\n"
+        f"{TEXTS['profile_header']}\n"
+        f"{TEXTS['nickname']} @{update.effective_user.username}\n"
+        f"{TEXTS['balance']} {user.get('balance', 0)}₽\n"
+        f"{TEXTS['questionnaire_status']} {user.get('questionnaire_status', TEXTS['not_filled'])}\n"
+        f"{TEXTS['role']} {user.get('role', TEXTS['user'])}\n\n"
+        f"{TEXTS['transaction_history']}\n"
     )
     
     for transaction in user.get("transactions", [])[:5]:
@@ -278,40 +418,40 @@ def profile(update, context):
 # Выбор города
 def select_city(update, context):
     buttons = [[city] for city in CITIES]
-    buttons.append(["🔙 Назад"])
+    buttons.append([TEXTS["back"]])
     reply_markup = ReplyKeyboardMarkup(buttons, resize_keyboard=True)
-    update.message.reply_text("Выберите город:", reply_markup=reply_markup)
+    update.message.reply_text(TEXTS["select_city"], reply_markup=reply_markup)
     return CITY_SELECTION
 
 def city_selected(update, context):
     city = update.message.text
     if city not in CITIES:
-        update.message.reply_text("Пожалуйста, выберите город из списка.")
+        update.message.reply_text(TEXTS["select_from_list"])
         return CITY_SELECTION
     
     user_id = update.effective_user.id
     context.user_data["city"] = city
     
-    update.message.reply_text(f"Вы выбрали город: {city}")
+    update.message.reply_text(f"{TEXTS['selected_city']} {city}")
     return main_menu(update, context)
 
 # Выбор вакансии
 def select_vacancy(update, context):
     buttons = [[vacancy] for vacancy in VACANCIES.keys()]
-    buttons.append(["🔙 Назад"])
+    buttons.append([TEXTS["back"]])
     reply_markup = ReplyKeyboardMarkup(buttons, resize_keyboard=True)
-    update.message.reply_text("Выберите вакансию:", reply_markup=reply_markup)
+    update.message.reply_text(TEXTS["select_vacancy"], reply_markup=reply_markup)
     return VACANCY_SELECTION
 
 def vacancy_selected(update, context):
     vacancy = update.message.text
     if vacancy not in VACANCIES:
-        update.message.reply_text("Пожалуйста, выберите вакансию из списка.")
+        update.message.reply_text(TEXTS["select_from_list"])
         return VACANCY_SELECTION
     
     description = VACANCIES[vacancy]["description"]
     update.message.reply_text(
-        f"🔍 Описание вакансии {vacancy}:\n\n{description}",
+        f"{TEXTS['selected_vacancy']} {vacancy}:\n\n{description}",
         parse_mode="Markdown"
     )
     return main_menu(update, context)
@@ -329,7 +469,7 @@ def questionnaire_age(update, context):
     try:
         age = int(update.message.text)
         if age < 18:
-            update.message.reply_text("❌ Только для лиц старше 18 лет")
+            update.message.reply_text(TEXTS["age_restriction"])
             return main_menu(update, context)
         
         context.user_data["age"] = age
@@ -338,13 +478,13 @@ def questionnaire_age(update, context):
         update.message.reply_text("2. Выберите город для работы:", reply_markup=reply_markup)
         return QUESTIONNAIRE_CITY
     except ValueError:
-        update.message.reply_text("❌ Пожалуйста, введите число")
+        update.message.reply_text(TEXTS["enter_number"])
         return QUESTIONNAIRE_AGE
 
 def questionnaire_city(update, context):
     city = update.message.text
     if city not in CITIES:
-        update.message.reply_text("Пожалуйста, выберите город из списка.")
+        update.message.reply_text(TEXTS["select_from_list"])
         return QUESTIONNAIRE_CITY
     
     context.user_data["city"] = city
@@ -357,7 +497,7 @@ def questionnaire_city(update, context):
 def questionnaire_vacancy(update, context):
     vacancy = update.message.text
     if vacancy not in VACANCIES:
-        update.message.reply_text("Пожалуйста, выберите вакансию из списка.")
+        update.message.reply_text(TEXTS["select_from_list"])
         return QUESTIONNAIRE_VACANCY
     
     context.user_data["vacancy"] = vacancy
@@ -393,12 +533,12 @@ def questionnaire_contacts(update, context):
         f"├ Опыт: {context.user_data['experience']}\n"
         f"├ Вопросы: {context.user_data['questions']}\n"
         f"└ Контакты: {context.user_data['contacts']}\n\n"
-        "Подтверждаете отправку?"
+        TEXTS["confirmation_question"]
     )
     
     keyboard = [
-        [InlineKeyboardButton("✅ Подтвердить", callback_data="confirm_yes")],
-        [InlineKeyboardButton("❌ Отменить", callback_data="confirm_no")]
+        [InlineKeyboardButton(TEXTS["confirm"], callback_data="confirm_yes")],
+        [InlineKeyboardButton(TEXTS["cancel"], callback_data="confirm_no")]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
     
@@ -416,13 +556,13 @@ def questionnaire_confirmation(update, context):
             "username": update.effective_user.username,
             "balance": 0,
             "transactions": [],
-            "questionnaire_status": "на рассмотрении",
-            "role": "user",
+            "questionnaire_status": TEXTS["under_review"],
+            "role": TEXTS["user"],
             "tickets": []
         })
         
         user["questionnaire"] = context.user_data.copy()
-        user["questionnaire_status"] = "на рассмотрении"
+        user["questionnaire_status"] = TEXTS["under_review"]
         
         # Уведомление администратора
         send_admin_notification(
@@ -431,9 +571,9 @@ def questionnaire_confirmation(update, context):
             "admin_questionnaires"
         )
         
-        query.edit_message_text("✅ Анкета отправлена на рассмотрение!")
+        query.edit_message_text(TEXTS["questionnaire_sent"])
     else:
-        query.edit_message_text("❌ Заполнение анкеты отменено")
+        query.edit_message_text(TEXTS["questionnaire_cancelled"])
     
     return main_menu(update, context)
 
@@ -453,8 +593,8 @@ def ticket_message(update, context):
         "username": update.effective_user.username,
         "balance": 0,
         "transactions": [],
-        "questionnaire_status": "не заполнена",
-        "role": "user",
+        "questionnaire_status": TEXTS["not_filled"],
+        "role": TEXTS["user"],
         "tickets": []
     })
     
@@ -465,7 +605,7 @@ def ticket_message(update, context):
         "user_id": user_id,
         "username": update.effective_user.username,
         "message": update.message.text,
-        "status": "открыт",
+        "status": TEXTS["ticket_opened"],
         "created_at": datetime.now().isoformat(),
         "messages": [{
             "from": "user",
@@ -485,8 +625,8 @@ def ticket_message(update, context):
     )
     
     update.message.reply_text(
-        f"✅ Тикет #{ticket_id} создан!\n"
-        "Ожидайте ответа администрации."
+        f"{TEXTS['ticket_created'].replace('создан', f'#{ticket_id} создан')}\n"
+        f"{TEXTS['waiting_admin_response']}"
     )
     return main_menu(update, context)
 
@@ -497,7 +637,7 @@ def payment_selection(update, context):
     user = data["users"].get(str(user_id), {})
     
     if user.get("balance", 0) <= 0:
-        update.message.reply_text("❌ На вашем балансе недостаточно средств")
+        update.message.reply_text(TEXTS["insufficient_funds"])
         return main_menu(update, context)
     
     buttons = []
@@ -506,12 +646,12 @@ def payment_selection(update, context):
             buttons.append([f"{vacancy} - {info['deposit']}₽"])
     
     if not buttons:
-        update.message.reply_text("❌ У вас недостаточно средств для оплаты любой вакансии")
+        update.message.reply_text(TEXTS["insufficient_funds"])
         return main_menu(update, context)
     
-    buttons.append(["🔙 Назад"])
+    buttons.append([TEXTS["back"]])
     reply_markup = ReplyKeyboardMarkup(buttons, resize_keyboard=True)
-    update.message.reply_text("Выберите вакансию для оплаты:", reply_markup=reply_markup)
+    update.message.reply_text(TEXTS["select_payment_vacancy"], reply_markup=reply_markup)
     return PAYMENT_SELECTION
 
 def process_payment(update, context):
@@ -521,14 +661,14 @@ def process_payment(update, context):
     
     selection = update.message.text.split(" - ")[0]
     if selection not in VACANCIES:
-        update.message.reply_text("Пожалуйста, выберите вакансию из списка.")
+        update.message.reply_text(TEXTS["select_from_list"])
         return PAYMENT_SELECTION
     
     vacancy_info = VACANCIES[selection]
     deposit = vacancy_info["deposit"]
     
     if user.get("balance", 0) < deposit:
-        update.message.reply_text("❌ Недостаточно средств на балансе")
+        update.message.reply_text(TEXTS["insufficient_funds"])
         return main_menu(update, context)
     
     # Обновление баланса
@@ -545,13 +685,13 @@ def process_payment(update, context):
     user["vacancy_password"] = vacancy_info["password"]
     
     update.message.reply_text(
-        f"✅ Оплата залога для вакансии {selection} прошла успешно!\n"
-        f"С вашего баланса списано: {deposit}₽\n\n"
-        "Теперь вы можете зарегистрироваться как сотрудник."
+        f"{TEXTS['payment_successful'].replace('залога', f'залога для вакансии {selection}')}\n"
+        f"{TEXTS['amount_debited']} {deposit}₽\n\n"
+        f"{TEXTS['can_register_employee']}"
     )
     
     # Переход к регистрации
-    update.message.reply_text("Придумайте логин для системы:")
+    update.message.reply_text(TEXTS["create_login"])
     return REGISTER_USERNAME
 
 # Регистрация сотрудника
@@ -563,13 +703,13 @@ def register_username(update, context):
     # Проверка уникальности логина
     for user in data["users"].values():
         if user.get("employee_username") == username:
-            update.message.reply_text("❌ Этот логин уже занят. Придумайте другой:")
+            update.message.reply_text(TEXTS["login_taken"])
             return REGISTER_USERNAME
     
     context.user_data["employee_username"] = username
     update.message.reply_text(
         f"Логин: {username}\n"
-        f"Теперь введите пароль для вашей вакансии:"
+        f"{TEXTS['enter_password']}"
     )
     return REGISTER_PASSWORD
 
@@ -580,11 +720,11 @@ def register_password(update, context):
     user = data["users"].get(str(user_id), {})
     
     if password != user.get("vacancy_password"):
-        update.message.reply_text("❌ Неверный пароль. Попробуйте еще раз:")
+        update.message.reply_text(TEXTS["wrong_password"])
         return REGISTER_PASSWORD
     
     # Завершение регистрации
-    user["role"] = "employee"
+    user["role"] = TEXTS["employee"]
     user["employee_username"] = context.user_data["employee_username"]
     user["login_time"] = datetime.now().isoformat()
     
@@ -601,20 +741,20 @@ def register_password(update, context):
         logger.error(f"Ошибка отправки сообщения: {e}")
     
     update.message.reply_text(
-        "✅ Регистрация завершена успешно!\n"
-        "Данные для входа отправлены вам в личные сообщения."
+        f"{TEXTS['registration_complete']}\n"
+        f"{TEXTS['credentials_sent']}"
     )
     return main_menu(update, context)
 
 # Вход в систему сотрудника
 def login_username(update, context):
-    update.message.reply_text("Введите ваш логин:", reply_markup=ReplyKeyboardRemove())
+    update.message.reply_text(TEXTS["enter_login"], reply_markup=ReplyKeyboardRemove())
     return LOGIN_USERNAME
 
 def login_password(update, context):
     username = update.message.text.strip()
     context.user_data["login_username"] = username
-    update.message.reply_text("Введите пароль:")
+    update.message.reply_text(TEXTS["enter_password_login"])
     return LOGIN_PASSWORD
 
 def authenticate(update, context):
@@ -628,29 +768,29 @@ def authenticate(update, context):
     if (user.get("employee_username") == username and 
         user.get("vacancy_password") == password):
         # Успешная аутентификация
-        user["role"] = "employee"
+        user["role"] = TEXTS["employee"]
         user["login_time"] = datetime.now().isoformat()
         
-        update.message.reply_text("✅ Вход выполнен успешно!")
+        update.message.reply_text(TEXTS["login_successful"])
         return main_menu(update, context)
     else:
-        update.message.reply_text("❌ Неверный логин или пароль. Попробуйте снова:")
+        update.message.reply_text(TEXTS["wrong_credentials"])
         return LOGIN_USERNAME
 
 # Админ-панель
 def admin_panel(update, context):
     if update.effective_user.id != ADMIN_ID:
-        update.message.reply_text("❌ Доступ запрещен")
+        update.message.reply_text(TEXTS["access_denied"])
         return main_menu(update, context)
     
     buttons = [
-        ["👥 Пользователи", "📩 Тикеты"],
-        ["📝 Анкеты", "📊 Статистика"],
-        ["🔑 Пароли вакансий", "🔔 Уведомления"],
-        ["🔙 Назад"]
+        [TEXTS["users"], TEXTS["tickets"]],
+        [TEXTS["questionnaires"], TEXTS["statistics"]],
+        [TEXTS["passwords"], TEXTS["notifications"]],
+        [TEXTS["back"]]
     ]
     reply_markup = ReplyKeyboardMarkup(buttons, resize_keyboard=True)
-    update.message.reply_text("👑 Админ-панель:", reply_markup=reply_markup)
+    update.message.reply_text(TEXTS["admin_panel"], reply_markup=reply_markup)
     return ADMIN_MAIN
 
 # Управление пользователями
@@ -666,9 +806,9 @@ def admin_users(update, context):
         except KeyError:
             continue
     
-    buttons.append(["🔙 Назад"])
+    buttons.append([TEXTS["back"]])
     reply_markup = ReplyKeyboardMarkup(buttons, resize_keyboard=True)
-    update.message.reply_text("👥 Список пользователей:", reply_markup=reply_markup)
+    update.message.reply_text(TEXTS["users"], reply_markup=reply_markup)
     return ADMIN_USERS
 
 def admin_user_detail(update, context):
@@ -680,40 +820,40 @@ def admin_user_detail(update, context):
         if f"@{user['username']}" == username or f"ID: {user_id}" == username:
             context.user_data["admin_selected_user"] = user_id
             
-            status = "заблокирован" if user.get("blocked") else "активен"
+            status = TEXTS["blocked"] if user.get("blocked") else TEXTS["active"]
             text = (
-                f"👤 Пользователь: @{user['username']}\n"
-                f"├ ID: {user_id}\n"
-                f"├ Статус: {status}\n"
-                f"├ Баланс: {user.get('balance', 0)}₽\n"
-                f"├ Роль: {user.get('role', 'пользователь')}\n"
-                f"└ Анкета: {user.get('questionnaire_status', 'не заполнена')}\n\n"
+                f"{TEXTS['profile']} @{user['username']}\n"
+                f"{TEXTS['user_detail_id']} {user_id}\n"
+                f"{TEXTS['user_detail_status']} {status}\n"
+                f"{TEXTS['user_detail_balance']} {user.get('balance', 0)}₽\n"
+                f"{TEXTS['user_detail_role']} {user.get('role', TEXTS['user'])}\n"
+                f"{TEXTS['user_detail_questionnaire']} {user.get('questionnaire_status', TEXTS['not_filled'])}\n\n"
             )
             
             if "questionnaire" in user:
                 q = user["questionnaire"]
                 text += (
-                    f"📝 Анкета:\n"
-                    f"├ Возраст: {q.get('age', '')}\n"
-                    f"├ Город: {q.get('city', '')}\n"
+                    f"{TEXTS['questionnaire_detail']}\n"
+                    f"{TEXTS['age']} {q.get('age', '')}\n"
+                    f"{TEXTS['city_work']} {q.get('city', '')}\n"
                     f"├ Вакансия: {q.get('vacancy', '')}\n"
-                    f"├ Опыт: {q.get('experience', '')[:30]}...\n"
-                    f"└ Контакты: {q.get('contacts', '')}\n\n"
+                    f"{TEXTS['experience']} {q.get('experience', '')[:30]}...\n"
+                    f"{TEXTS['contacts']} {q.get('contacts', '')}\n\n"
                 )
             
-            buttons = [["✉️ Написать", "💸 Пополнить баланс"]]
+            buttons = [[TEXTS["write"], TEXTS["add_balance"]]]
             if user.get("blocked"):
-                buttons.append(["✅ Разблокировать"])
+                buttons.append([TEXTS["unblock"]])
             else:
-                buttons.append(["🚫 Заблокировать"])
+                buttons.append([TEXTS["block"]])
             
-            buttons.append(["🔙 Назад"])
+            buttons.append([TEXTS["back"]])
             reply_markup = ReplyKeyboardMarkup(buttons, resize_keyboard=True)
             
             update.message.reply_text(text, reply_markup=reply_markup)
             return ADMIN_USER_DETAIL
     
-    update.message.reply_text("❌ Пользователь не найден")
+    update.message.reply_text(TEXTS["user_not_found"])
     return admin_users(update, context)
 
 # Управление тикетами
@@ -722,12 +862,12 @@ def admin_tickets(update, context):
     buttons = []
     
     for ticket_id, ticket in data["tickets"].items():
-        status = "🟢" if ticket["status"] == "открыт" else "🔴"
+        status = "🟢" if ticket["status"] == TEXTS["ticket_opened"] else "🔴"
         buttons.append([f"{status} #{ticket_id} @{ticket['username']}"])
     
-    buttons.append(["🔙 Назад"])
+    buttons.append([TEXTS["back"]])
     reply_markup = ReplyKeyboardMarkup(buttons, resize_keyboard=True)
-    update.message.reply_text("📩 Список тикетов:", reply_markup=reply_markup)
+    update.message.reply_text(TEXTS["ticket_list"], reply_markup=reply_markup)
     return ADMIN_TICKETS
 
 def admin_ticket_detail(update, context):
@@ -736,27 +876,27 @@ def admin_ticket_detail(update, context):
     data = context.bot_data
     
     if ticket_id not in data["tickets"]:
-        update.message.reply_text("❌ Тикет не найден")
+        update.message.reply_text(TEXTS["ticket_not_found"])
         return admin_tickets(update, context)
     
     ticket = data["tickets"][ticket_id]
     context.user_data["admin_selected_ticket"] = ticket_id
     
     text = (
-        f"📩 Тикет #{ticket_id}\n"
-        f"├ Пользователь: @{ticket['username']}\n"
-        f"├ Статус: {ticket['status']}\n"
-        f"└ Создан: {datetime.fromisoformat(ticket['created_at']).strftime('%d.%m.%Y %H:%M')}\n\n"
-        f"💬 История сообщений:\n"
+        f"{TEXTS['ticket']} #{ticket_id}\n"
+        f"{TEXTS['ticket_detail_user']} @{ticket['username']}\n"
+        f"{TEXTS['ticket_detail_status']} {ticket['status']}\n"
+        f"{TEXTS['ticket_detail_created']} {datetime.fromisoformat(ticket['created_at']).strftime('%d.%m.%Y %H:%M')}\n\n"
+        f"{TEXTS['message_history']}\n"
     )
     
     for msg in ticket["messages"]:
-        sender = "👤 Пользователь" if msg["from"] == "user" else "👑 Админ"
+        sender = TEXTS["user_sender"] if msg["from"] == "user" else TEXTS["admin_sender"]
         time = datetime.fromisoformat(msg["time"]).strftime('%H:%M')
         text += f"{sender} ({time}):\n{msg['text']}\n\n"
     
-    buttons = [["💬 Ответить"], ["✅ Закрыть", "❌ Удалить"]]
-    buttons.append(["🔙 Назад"])
+    buttons = [[TEXTS["reply"]], [TEXTS["close"], TEXTS["delete"]]]
+    buttons.append([TEXTS["back"]])
     reply_markup = ReplyKeyboardMarkup(buttons, resize_keyboard=True)
     
     update.message.reply_text(text, reply_markup=reply_markup)
@@ -768,7 +908,7 @@ def admin_ticket_reply(update, context):
         return admin_tickets(update, context)
     
     context.user_data["ticket_reply_mode"] = True
-    update.message.reply_text("Введите ваш ответ:", reply_markup=ReplyKeyboardRemove())
+    update.message.reply_text(TEXTS["enter_reply"], reply_markup=ReplyKeyboardRemove())
     return TICKET_MESSAGE
 
 def process_admin_reply(update, context):
@@ -805,7 +945,7 @@ def process_admin_reply(update, context):
     except Exception as e:
         logger.error(f"Ошибка отправки уведомления: {e}")
     
-    update.message.reply_text("✅ Ответ отправлен!")
+    update.message.reply_text(TEXTS["reply_sent"])
     return admin_ticket_detail(update, context)
 
 # Уведомления
@@ -815,15 +955,15 @@ def notifications(update, context):
     notifications = data["notifications"].get(str(user_id), [])
     
     if not notifications:
-        update.message.reply_text("🔔 У вас нет новых уведомлений")
+        update.message.reply_text(TEXTS["no_notifications"])
         return main_menu(update, context)
     
     unread = [n for n in notifications if not n["read"]]
     if not unread:
-        update.message.reply_text("🔔 У вас нет новых уведомлений")
+        update.message.reply_text(TEXTS["no_notifications"])
         return main_menu(update, context)
     
-    text = "🔔 Новые уведомления:\n\n"
+    text = f"{TEXTS['new_notifications']}\n\n"
     for i, note in enumerate(unread[:10], 1):
         time = datetime.fromisoformat(note["time"]).strftime('%d.%m.%Y %H:%M')
         text += f"{i}. {note['text']} ({time})\n"
@@ -882,17 +1022,17 @@ def main():
         entry_points=[CommandHandler('start', main_menu)],
         states={
             MAIN_MENU: [
-                MessageHandler(Filters.regex('^🏙️ Город$'), select_city),
-                MessageHandler(Filters.regex('^💼 Вакансии$'), select_vacancy),
-                MessageHandler(Filters.regex('^📝 Анкета$'), start_questionnaire),
-                MessageHandler(Filters.regex('^📩 Тикет$'), create_ticket),
-                MessageHandler(Filters.regex('^👤 Профиль$'), profile),
-                MessageHandler(Filters.regex('^💰 Оплата$'), payment_selection),
-                MessageHandler(Filters.regex('^👑 Админ-панель$'), admin_panel),
-                MessageHandler(Filters.regex('^🔔 Уведомления$'), notifications),
-                MessageHandler(Filters.regex('^📚 Мануалы$'), lambda u,c: u.message.reply_text("Раздел в разработке")),
-                MessageHandler(Filters.regex('^🎮 Симуляция$'), lambda u,c: u.message.reply_text("Раздел в разработке")),
-                MessageHandler(Filters.regex('^👤 Аккаунт$'), profile),
+                MessageHandler(Filters.regex(f'^{TEXTS["city"]}$'), select_city),
+                MessageHandler(Filters.regex(f'^{TEXTS["vacancies"]}$'), select_vacancy),
+                MessageHandler(Filters.regex(f'^{TEXTS["questionnaire"]}$'), start_questionnaire),
+                MessageHandler(Filters.regex(f'^{TEXTS["ticket"]}$'), create_ticket),
+                MessageHandler(Filters.regex(f'^{TEXTS["profile"]}$'), profile),
+                MessageHandler(Filters.regex(f'^{TEXTS["payment"]}$'), payment_selection),
+                MessageHandler(Filters.regex(f'^{TEXTS["admin_panel"]}$'), admin_panel),
+                MessageHandler(Filters.regex(f'^{TEXTS["notifications"]}$'), notifications),
+                MessageHandler(Filters.regex(f'^{TEXTS["manuals"]}$'), lambda u,c: u.message.reply_text(TEXTS["in_development"])),
+                MessageHandler(Filters.regex(f'^{TEXTS["simulation"]}$'), lambda u,c: u.message.reply_text(TEXTS["in_development"])),
+                MessageHandler(Filters.regex(f'^{TEXTS["account"]}$'), profile),
             ],
             CITY_SELECTION: [
                 MessageHandler(Filters.text & ~Filters.command, city_selected)
@@ -932,34 +1072,34 @@ def main():
                 MessageHandler(Filters.text & ~Filters.command, register_password)
             ],
             ADMIN_MAIN: [
-                MessageHandler(Filters.regex('^👥 Пользователи$'), admin_users),
-                MessageHandler(Filters.regex('^📩 Тикеты$'), admin_tickets),
-                MessageHandler(Filters.regex('^📝 Анкеты$'), lambda u,c: u.message.reply_text("Раздел в разработке")),
-                MessageHandler(Filters.regex('^📊 Статистика$'), lambda u,c: u.message.reply_text("Раздел в разработке")),
-                MessageHandler(Filters.regex('^🔑 Пароли вакансий$'), lambda u,c: u.message.reply_text("Раздел в разработке")),
-                MessageHandler(Filters.regex('^🔔 Уведомления$'), notifications),
-                MessageHandler(Filters.regex('^🔙 Назад$'), main_menu),
+                MessageHandler(Filters.regex(f'^{TEXTS["users"]}$'), admin_users),
+                MessageHandler(Filters.regex(f'^{TEXTS["tickets"]}$'), admin_tickets),
+                MessageHandler(Filters.regex(f'^{TEXTS["questionnaires"]}$'), lambda u,c: u.message.reply_text(TEXTS["in_development"])),
+                MessageHandler(Filters.regex(f'^{TEXTS["statistics"]}$'), lambda u,c: u.message.reply_text(TEXTS["in_development"])),
+                MessageHandler(Filters.regex(f'^{TEXTS["passwords"]}$'), lambda u,c: u.message.reply_text(TEXTS["in_development"])),
+                MessageHandler(Filters.regex(f'^{TEXTS["notifications"]}$'), notifications),
+                MessageHandler(Filters.regex(f'^{TEXTS["back"]}$'), main_menu),
             ],
             ADMIN_USERS: [
                 MessageHandler(Filters.text & ~Filters.command, admin_user_detail),
-                MessageHandler(Filters.regex('^🔙 Назад$'), admin_panel)
+                MessageHandler(Filters.regex(f'^{TEXTS["back"]}$'), admin_panel)
             ],
             ADMIN_USER_DETAIL: [
-                MessageHandler(Filters.regex('^✉️ Написать$'), lambda u,c: u.message.reply_text("Функция в разработке")),
-                MessageHandler(Filters.regex('^💸 Пополнить баланс$'), lambda u,c: u.message.reply_text("Функция в разработке")),
-                MessageHandler(Filters.regex('^🚫 Заблокировать$'), lambda u,c: u.message.reply_text("Функция в разработке")),
-                MessageHandler(Filters.regex('^✅ Разблокировать$'), lambda u,c: u.message.reply_text("Функция в разработке")),
-                MessageHandler(Filters.regex('^🔙 Назад$'), admin_users)
+                MessageHandler(Filters.regex(f'^{TEXTS["write"]}$'), lambda u,c: u.message.reply_text(TEXTS["function_in_development"])),
+                MessageHandler(Filters.regex(f'^{TEXTS["add_balance"]}$'), lambda u,c: u.message.reply_text(TEXTS["function_in_development"])),
+                MessageHandler(Filters.regex(f'^{TEXTS["block"]}$'), lambda u,c: u.message.reply_text(TEXTS["function_in_development"])),
+                MessageHandler(Filters.regex(f'^{TEXTS["unblock"]}$'), lambda u,c: u.message.reply_text(TEXTS["function_in_development"])),
+                MessageHandler(Filters.regex(f'^{TEXTS["back"]}$'), admin_users)
             ],
             ADMIN_TICKETS: [
                 MessageHandler(Filters.text & ~Filters.command, admin_ticket_detail),
-                MessageHandler(Filters.regex('^🔙 Назад$'), admin_panel)
+                MessageHandler(Filters.regex(f'^{TEXTS["back"]}$'), admin_panel)
             ],
             ADMIN_TICKET_DETAIL: [
-                MessageHandler(Filters.regex('^💬 Ответить$'), admin_ticket_reply),
-                MessageHandler(Filters.regex('^✅ Закрыть$'), lambda u,c: u.message.reply_text("Функция в разработке")),
-                MessageHandler(Filters.regex('^❌ Удалить$'), lambda u,c: u.message.reply_text("Функция в разработке")),
-                MessageHandler(Filters.regex('^🔙 Назад$'), admin_tickets)
+                MessageHandler(Filters.regex(f'^{TEXTS["reply"]}$'), admin_ticket_reply),
+                MessageHandler(Filters.regex(f'^{TEXTS["close"]}$'), lambda u,c: u.message.reply_text(TEXTS["function_in_development"])),
+                MessageHandler(Filters.regex(f'^{TEXTS["delete"]}$'), lambda u,c: u.message.reply_text(TEXTS["function_in_development"])),
+                MessageHandler(Filters.regex(f'^{TEXTS["back"]}$'), admin_tickets)
             ],
             TICKET_MESSAGE: [
                 MessageHandler(Filters.text & ~Filters.command, process_admin_reply)
