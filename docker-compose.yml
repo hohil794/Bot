@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  odanna-bot:
+    build: .
+    container_name: odanna-telegram-bot
+    restart: unless-stopped
+    environment:
+      - BOT_TOKEN=${BOT_TOKEN}
+      - DB_PATH=/app/data/odanna_bot.db
+      - LOG_LEVEL=INFO
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+    ports:
+      - "8080:8080"
+    networks:
+      - odanna-network
+
+  # Опциональный Redis для кэширования (если понадобится в будущем)
+  redis:
+    image: redis:7-alpine
+    container_name: odanna-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    networks:
+      - odanna-network
+    profiles:
+      - with-redis
+
+networks:
+  odanna-network:
+    driver: bridge
+
+volumes:
+  redis_data:
